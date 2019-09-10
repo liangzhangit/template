@@ -66,6 +66,7 @@ import lombok.ToString;
 #include ( "author.vm" )
 #parse ( "loader_stringutils.vm" )
 #parse ( "loader_inflector.vm" )
+#parse ( "loader_uuid.vm" )
 
 @Getter
 @Setter
@@ -88,7 +89,7 @@ import lombok.ToString;
 )
 public class ${entity.name} implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = $uuid.randomUUID().getMostSignificantBits()L;
 #foreach( $field in $entity.keyAttributes )
 
     @Access(AccessType.PROPERTY)
