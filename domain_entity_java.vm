@@ -1,72 +1,14 @@
-package ${target.javaPackageFromFolder(${SRC})};
-
-import java.io.Serializable;
-#set ( $toMany = 0 )
-#set ( $toOne = 0 )
-#foreach( $link in $entity.selectedLinks )
-#if ( $link.isCardinalityManyToMany() || $link.isCardinalityOneToMany() )
-#set ( $toMany = $toMany + 1 )
-#end
-#end
-#foreach( $link in $entity.selectedLinks )
-#if ( $link.isCardinalityManyToOne() || $link.isCardinalityOneToOne() )
-#set ( $toOne = $toOne + 1 )
-#end
-#end
-#foreach( $import in $java.imports($entity.attributes) )
-import $import;
-#end
-#if ( $toMany > 0 )
-import java.util.List;
-#end
-
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-#if ( $toMany > 0) 
-import javax.persistence.CascadeType;
-#end
-#if ( $toMany > 0 || $toOne > 0) 
-import javax.persistence.FetchType; 
-#end
-#if ( $toOne > 0) 
-import javax.persistence.ForeignKey;
-#end
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-#if ( $toOne > 0) 
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-#end
-import javax.persistence.Index;
-#if ( $toMany > 0) 
-import javax.persistence.OneToMany;
-#end
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-#if ( $toMany > 0) 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-#end
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
-#set( $linkFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.IN_SELECTED_LINKS ) )
-#include ( "author.vm" )
 #parse ( "loader_stringutils.vm" )
 #parse ( "loader_inflector.vm" )
 #parse ( "loader_uuid.vm" )
+package ${target.javaPackageFromFolder(${SRC})};
+
+#parse ( "domain_entity_imports_java.vm" )
+
+#include ( "author.vm" )
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+#set( $linkFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.IN_SELECTED_LINKS ) )
+#set( $tableName = $strUtils.upperCase( $inflector.getInstance().pluralize( $entity.databaseTable ) ) )
 
 @Getter
 @Setter
@@ -75,15 +17,15 @@ import lombok.ToString;
 @Builder
 @ToString
 @Entity
-@Table(name = "$strUtils.upperCase($inflector.getInstance().pluralize($entity.databaseTable))",
+@Table(name = "${tableName}",
        uniqueConstraints = {
 #foreach( $field in $entity.keyAttributes )
-            @UniqueConstraint(columnNames = {"$field.databaseName.toUpperCase()"}, name = "UN_$entity.databaseTable.toUpperCase()_$field.databaseName.toUpperCase()"),
+            @UniqueConstraint(columnNames = {"$field.databaseName.toUpperCase()"}, name = "UN_${tableName}_$field.databaseName.toUpperCase()"),
 #end
        },
        indexes = {
 #foreach( $field in $entity.attributes )
-            @Index(columnList = "$field.databaseName.toUpperCase()", name = "IDX_$entity.databaseTable.toUpperCase()_$field.databaseName.toUpperCase()"),
+            @Index(columnList = "$field.databaseName.toUpperCase()", name = "IDX_${tableName}_$field.databaseName.toUpperCase()"),
 #end
        }
 )
@@ -101,7 +43,7 @@ public class ${entity.name} implements Serializable {
 #foreach( $link in $entity.selectedLinks )
 #if ($link.isCardinalityManyToOne())
 
-    @JoinColumn(name = "$link.fieldName.toUpperCase()_ID", foreignKey = @ForeignKey(name = "FK_$link.fieldName.toUpperCase()_ID"))
+    @JoinColumn(name = "$link.fieldName.toUpperCase()_ID", foreignKey = @ForeignKey(name = "FK_${tableName}_$link.fieldName.toUpperCase()_ID"))
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
 #if ( $link.fieldType.contains("Enum_") )
     private $link.fieldType.replace("Enum_", "") $link.fieldName;

@@ -1,19 +1,19 @@
+#parse ( "loader_stringutils.vm" )
 package ${target.javaPackageFromFolder(${SRC})};
 
 import java.util.Arrays;
 
 #include ( "author.vm" )
-#parse ( "loader_stringutils.vm" )
 
 #set ( $entityName = $entity.name.replace("Enum_", "") )
 public enum ${entityName} {
 
 #foreach( $field in $entity.attributes )
-        $field.name.toUpperCase() {
+        $strUtils.join($strUtils.splitByCharacterTypeCamelCase($field.name), "_").toUpperCase() {
 
             @Override
             public String getMessageKey() {
-                return "enum-$strUtils.join($strUtils.splitByCharacterTypeCamelCase($entityName), "-").toLowerCase()-$field.name.toLowerCase()";
+                return "enum-$strUtils.join($strUtils.splitByCharacterTypeCamelCase($entityName), "-").toLowerCase()-$strUtils.join($strUtils.splitByCharacterTypeCamelCase($$field.name), "-").toLowerCase()";
             }
 #if( $foreach.hasNext )
         },
