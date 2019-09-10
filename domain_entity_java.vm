@@ -1,0 +1,132 @@
+package ${target.javaPackageFromFolder(${SRC})};
+
+import java.io.Serializable;
+#set ( $toMany = 0 )
+#set ( $toOne = 0 )
+#foreach( $link in $entity.selectedLinks )
+#if ( $link.isCardinalityManyToMany() || $link.isCardinalityOneToMany() )
+#set ( $toMany = $toMany + 1 )
+#end
+#end
+#foreach( $link in $entity.selectedLinks )
+#if ( $link.isCardinalityManyToOne() || $link.isCardinalityOneToOne() )
+#set ( $toOne = $toOne + 1 )
+#end
+#end
+#foreach( $import in $java.imports($entity.attributes) )
+import $import;
+#end
+#if ( $toMany > 0 )
+import java.util.List;
+#end
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+#if ( $toMany > 0) 
+import javax.persistence.CascadeType;
+#end
+#if ( $toMany > 0 || $toOne > 0) 
+import javax.persistence.FetchType; 
+#end
+#if ( $toOne > 0) 
+import javax.persistence.ForeignKey;
+#end
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+#if ( $toOne > 0) 
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+#end
+import javax.persistence.Index;
+#if ( $toMany > 0) 
+import javax.persistence.OneToMany;
+#end
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+
+#if ( $toMany > 0) 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+#end
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+#set( $linkFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.IN_SELECTED_LINKS ) )
+#include ( "author.vm" )
+#parse ( "loader_stringutils.vm" )
+#parse ( "loader_inflector.vm" )
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
+@Entity
+@Table(name = "$strUtils.upperCase($inflector.getInstance().pluralize($entity.databaseTable))",
+       uniqueConstraints = {
+#foreach( $field in $entity.keyAttributes )
+            @UniqueConstraint(columnNames = {"$field.databaseName.toUpperCase()"}, name = "UN_$entity.databaseTable.toUpperCase()_$field.databaseName.toUpperCase()"),
+#end
+       },
+       indexes = {
+#foreach( $field in $entity.attributes )
+            @Index(columnList = "$field.databaseName.toUpperCase()", name = "IDX_$entity.databaseTable.toUpperCase()_$field.databaseName.toUpperCase()"),
+#end
+       }
+)
+public class ${entity.name} implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+#foreach( $field in $entity.keyAttributes )
+
+    @Access(AccessType.PROPERTY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "$field.databaseName.toUpperCase()", updatable = false, insertable = false)
+    private $field.type $field.name#if($field.hasInitialValue())= ${field.initialValue}#end;
+#end
+#foreach( $link in $entity.selectedLinks )
+#if ($link.isCardinalityManyToOne())
+
+    @JoinColumn(name = "$link.fieldName.toUpperCase()_ID", foreignKey = @ForeignKey(name = "FK_$link.fieldName.toUpperCase()_ID"))
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+#if ( $link.fieldType.contains("Enum_") )
+    private $link.fieldType.replace("Enum_", "") $link.fieldName;
+#else
+    private ${link.fieldType} $link.fieldName;
+#end
+#end
+#if ($link.isCardinalityOneToMany())
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE}, orphanRemoval = true, mappedBy = "${entity.name.toLowerCase()}")
+    @Fetch(FetchMode.SELECT)
+    @JsonBackReference
+#if ( $link.fieldType.contains("Enum_") )
+    private $link.fieldType.replace("Enum_", "") $link.fieldName;
+#else
+    private ${link.fieldType} $link.fieldName;
+#end
+#end
+#end
+#foreach( $field in $dataFields )
+
+    @Column(name = "$field.databaseName.toUpperCase()", nullable = false)
+#if ( $field.type.contains("Enum_") )
+    private $field.type $field.name#if($field.hasInitialValue())= ${field.initialValue}#end;
+#else
+    private $field.type.replace("Enum_", "") $field.name#if($field.hasInitialValue())= ${field.initialValue}#end;
+#end
+#end
+}
