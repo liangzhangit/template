@@ -1,6 +1,6 @@
-#parse ( "loader_stringutils.vm" )
-#parse ( "loader_inflector.vm" )
-#parse ( "loader_uuid.vm" )
+#parse ( "include/loader_stringutils.vm" )
+#parse ( "include/loader_inflector.vm" )
+#parse ( "include/loader_uuid.vm" )
 package ${target.javaPackageFromFolder(${SRC})};
 
 #parse ( "domain_entity_imports_java.vm" )

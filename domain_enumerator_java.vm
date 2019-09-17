@@ -1,4 +1,4 @@
-#parse ( "loader_stringutils.vm" )
+#parse ( "include/loader_stringutils.vm" )
 package ${target.javaPackageFromFolder(${SRC})};
 
 import java.util.Arrays;
