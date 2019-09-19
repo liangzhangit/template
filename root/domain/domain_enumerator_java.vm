@@ -3,7 +3,7 @@ package ${target.javaPackageFromFolder(${SRC})};
 
 import java.util.Arrays;
 
-#include ( "author.vm" )
+#include ( "/include/author.vm" )
 
 #set ( $entityName = $entity.name.replace("Enum_", "") )
 public enum ${entityName} {
