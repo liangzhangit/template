@@ -3,7 +3,7 @@
 #parse ( "include/loader_uuid.vm" )
 package ${target.javaPackageFromFolder(${SRC})};
 
-#parse ( "root/domain/domain_entity_imports_java.vm" )
+#parse ( "main/java/domain/domain_entity_imports_java.vm" )
 
 #include ( "/include/author.vm" )
 #set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
