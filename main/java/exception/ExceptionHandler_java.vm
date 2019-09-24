@@ -103,4 +103,3 @@ public class ${appName}ExceptionHandler {
         return RestExceptionHelper.buildHttpResponseStatus(HttpStatus.EXPECTATION_FAILED, message, webRequest.getPath());
     }
 }
-$target.forceEntityName(${appName})
