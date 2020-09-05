@@ -6,8 +6,8 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.8.RELEASE</version>
-		<relativePath/>
+		<version>2.3.3.RELEASE</version>
+		<relativePath />
 	</parent>
 	<groupId>${MAVEN_GROUP_ID}</groupId>
 	<artifactId>${MAVEN_ARTIFACT_ID}</artifactId>
