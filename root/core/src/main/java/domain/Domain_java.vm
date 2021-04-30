@@ -1,0 +1,49 @@
+#parse ( "/include/domain_info.vm" )
+package ${ROOT_PKG}.core.${entity.name.toLowerCase()}.domain;
+
+#parse ( "root/core/src/main/java/domain/Domain_Imports_java.vm" )
+
+#include ( "/include/author.vm" )
+
+@Getter
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
+public class ${entity.name} implements Serializable {
+
+#parse ( "/include/serial_version.vm" )
+
+#foreach( $field in $domainKeys )
+#if ( $field.isLongType() )
+    private final Long $field.name;
+#else
+    private final $field.type $field.name;
+#end
+#end
+#foreach( $field in $domainLinksToOne )
+    private final ${field.fieldType} $field.fieldName;
+#end
+#foreach( $field in $domainLongs )
+    private final Long $field.name;
+#end
+#foreach( $field in $domainStrings )
+    private final String $field.name;
+#end
+#foreach( $field in $domainEnumerators )
+#if ( $field.isCardinalityManyToOne() || $field.isCardinalityOneToMany() )
+    private final $field.fieldType.replace("Enum_", "") $field.fieldName;
+#end
+#end
+#foreach( $field in $domainBooleans )
+    private final Boolean $field.name;
+#end
+#foreach( $field in $domainDates )
+    private final LocalDate $field.name;
+#end
+#foreach( $field in $domainTimestamps )
+    private final LocalDateTime $field.name;
+#end
+#foreach( $field in $domainDecimals )
+    private final BigDecimal $field.name;
+#end
+}
