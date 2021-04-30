@@ -1,0 +1,23 @@
+import java.io.Serializable;
+#if ( $domainDecimals.size() > 0 )
+import java.math.BigDecimal;
+#end
+#if ( $domainDates.size() > 0 )
+import java.time.LocalDate;
+#end
+#if ( $domainTimestamps.size() > 0 )
+import java.time.LocalDateTime;
+#end
+#if ( $domainLinks.size() > 0 )
+
+#foreach( $field in $domainLinks )
+#set ( $fieldType = $field.fieldType )
+#if ( !$fieldType.contains("Enum_") )
+import ${ROOT_PKG}.core.${fieldType.toLowerCase()}.domain.${fieldType};
+#end
+#end
+#end
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;

@@ -1,0 +1,23 @@
+package ${ROOT_PKG}.entrypoint.rest.common;
+
+import java.io.Serializable;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+#include ( "/include/author.vm" )
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class WebRequest implements Serializable {
+
+#parse ( "/include/serial_version.vm" )
+
+    protected String path;
+}

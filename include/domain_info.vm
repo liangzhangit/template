@@ -1,0 +1,131 @@
+#parse ( "include/loader_stringutils.vm" )
+#parse ( "include/loader_wordutils.vm" )
+#parse ( "include/loader_inflector.vm" )
+#set ( $pluralEntityName = $wordUtils.capitalize($inflector.getInstance().pluralize($entity.name)) )
+#set ( $uncapitalizeEntityName = $wordUtils.uncapitalize($entity.name) )
+#set ( $uncapitalizePluralEntityName = $wordUtils.uncapitalize($pluralEntityName) )
+#set ( $entityNameLowerCaseWithDot = $strUtils.join($strUtils.splitByCharacterTypeCamelCase($entity.name), ".").toLowerCase() )
+#set ( $entityNameAsUrl = $strUtils.join($strUtils.splitByCharacterTypeCamelCase($inflector.getInstance().pluralize($entity.name)), "-").toLowerCase() )
+#set ( $domainKeys            = [] )
+#set ( $domainUkKeys          = [] )
+#set ( $domainUniqKeys        = [] )
+#set ( $domainIndexes         = [] )
+#set ( $domainLinks           = [] )
+#set ( $domainLinksToMany     = [] )
+#set ( $domainLinksToOne      = [] )
+#set ( $domainLinksManyToMany = [] )
+#set ( $domainLinksOneToMany  = [] )
+#set ( $domainLinksManyToOne  = [] )
+#set ( $domainLinksOneToOne   = [] )
+#set ( $domainEnumerators     = [] )
+#set ( $domainLongs           = [] )
+#set ( $domainStrings         = [] )
+#set ( $domainBooleans        = [] )
+#set ( $domainDates           = [] )
+#set ( $domainTimestamps      = [] )
+#set ( $domainDecimals        = [] )
+#set ( $domainReferencedBy    = [] )
+#set ( $hasCurrentDateOnCreation = "false" )
+#set ( $hasCurrentDateOnUpdate = "false" )
+#set ( $hasCurrentDateTimeOnCreation = "false" )
+#set ( $hasCurrentDateTimeOnUpdate = "false" )
+#foreach( $field in $entity.keyAttributes )
+#set ( $x = $domainKeys.add($field) )
+#end
+#if ( $domainKeys.size() > 0 )
+#set ( $domainId = $wordUtils.capitalize($domainKeys.get(0).name) )
+#set ( $uncapitalizedDomainId = $wordUtils.uncapitalize($domainId) )
+#set ( $pluralDomainId = $inflector.getInstance().pluralize($domainId) )
+#set ( $uncapitalizePluralDomainId = $wordUtils.uncapitalize($pluralDomainId) )
+#else
+#set ( $domainId = $wordUtils.capitalize("idNotSet") )
+#set ( $pluralDomainId = "idsNotSet" )
+#end
+#foreach( $field in $entity.selectedLinks )
+#if ( $field.fieldType.contains("Enum_") )
+#set ( $x = $domainEnumerators.add($field) )
+#else
+#set ( $x = $domainLinks.add($field) )
+#if ( $field.isCardinalityManyToMany() )
+#set ( $x = $domainLinksToMany.add($field) )
+#set ( $x = $domainLinksManyToMany.add($field) )
+#elseif ( $field.isCardinalityOneToMany() )
+#set ( $x = $domainLinksToMany.add($field) )
+#set ( $x = $domainLinksOneToMany.add($field) )
+#elseif ( $field.isCardinalityManyToOne() )
+#set ( $x = $domainLinksToOne.add($field) )
+#set ( $x = $domainLinksManyToOne.add($field) )
+#elseif ( $field.isCardinalityOneToOne() )
+#set ( $x = $domainLinksToOne.add($field) )
+#set ( $x = $domainLinksOneToOne.add($field) )
+#end
+#end
+#end
+#set ( $tableName = $strUtils.join($strUtils.splitByCharacterTypeCamelCase($pluralEntityName), "_").toUpperCase() ) 
+#set ( $domainAttributes = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+#foreach( $field in $domainAttributes )
+#if ( $field.isLongType() )
+#set ( $x = $domainLongs.add($field) )
+#elseif ( $field.isStringType() )
+#set ( $x = $domainStrings.add($field) )
+#elseif ( $field.isBooleanType() )
+#set ( $x = $domainBooleans.add($field) )
+#elseif ( $field.isDateType() )
+#set ( $x = $domainDates.add($field) )
+#if ( $strUtils.split($field.databaseComment, ", ").contains("CurrentDateOnCreation") )
+#set ( $hasCurrentDateOnCreation = "true" )
+#end
+#if ( $strUtils.split($field.databaseComment, ", ").contains("CurrentDateOnUpdate") )
+#set ( $hasCurrentDateOnUpdate = "true" )
+#end
+#elseif ( $field.isTimestampType() )
+#set ( $x = $domainTimestamps.add($field) )
+#if ( $strUtils.split($field.databaseComment, ", ").contains("CurrentDateTimeOnCreation") )
+#set ( $hasCurrentDateTimeOnCreation = "true" )
+#end
+#if ( $strUtils.split($field.databaseComment, ", ").contains("CurrentDateTimeOnUpdate") )
+#set ( $hasCurrentDateTimeOnUpdate = "true" )
+#end
+#elseif ( $field.isDecimalType() )
+#set ( $x = $domainDecimals.add($field) )
+#end
+#foreach ( $item in [1..9] )
+#if ( $strUtils.split($field.databaseComment, ", ").contains("UniqueKey${item}") )
+#if ( $field.isStringType() )
+#set ( $element = ["UniqueKey${item}", "${field.name}", "${field.name}IgnoreCase"] )
+#else
+#set ( $element = ["UniqueKey${item}", "${field.name}", "${field.name}"] )
+#end
+#set ( $x = $domainUniqKeys.add($element) )
+#end
+#end
+#if ( $strUtils.split($field.databaseComment, ", ").contains("UniqueKey") )
+
+#set ( $element = ["UniqueKey", "${field.name}", "${field.name}"] )
+#set ( $x = $domainUniqKeys.add($element) )
+
+#set ( $x = $domainUkKeys.add($field) )
+#elseif ( $strUtils.split($field.databaseComment, ", ").contains("Index") )
+#set ( $x = $domainIndexes.add($field) )
+#end
+#end
+#set ( $domainEnumAttributes = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.IN_SELECTED_LINKS ) )
+#foreach( $field in $domainEnumAttributes )
+#foreach ( $item in [1..9] )
+#if ( $strUtils.split($field.label, ", ").contains("UniqueKey${item}") )
+#set ( $element = ["UniqueKey${item}", "${field.name}", "${field.name}"] )
+#set ( $x = $domainUniqKeys.add($element) )
+#end
+#end
+#end
+#foreach( $element in $model.allEntites )
+#if ( !$element.name.contains("Enum_") )
+#foreach( $field in $element.selectedLinks )
+#if ( $field.fieldType.equalsIgnoreCase($entity.name) ) 
+#if ( !$domainReferencedBy.contains($element) )
+#set ( $x = $domainReferencedBy.add($element) )
+#end
+#end
+#end
+#end
+#end
