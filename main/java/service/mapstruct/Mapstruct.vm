@@ -1,0 +1,13 @@
+package ${target.javaPackageFromFolder(${SRC})};
+
+import org.demo.base.BaseMapper;
+import ${ENTITY_PKG}.${entity.name};
+import ${ROOT_PKG}.service.dto.${entity.name}Dto;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+#include ( "/include/author.vm" )
+
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface ${entity.name}Mapper extends BaseMapper<${entity.name}Dto, ${entity.name}> {
+
+}

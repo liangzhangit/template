@@ -1,0 +1,58 @@
+package ${target.javaPackageFromFolder(${SRC})};
+
+import java.util.List;
+import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ${ROOT_PKG}.service.criteria.${entity.name}Param;
+import ${ROOT_PKG}.service.dto.${entity.name}Dto;
+import ${ENTITY_PKG}.${entity.name};
+
+#set( $entityKeyType = ${entity.keyAttributes[0].formattedType(0)} )
+#include ( "/include/author.vm" )
+
+public interface ${entity.name}Service  {
+
+    /**
+    * 查询数据分页
+    * @param criteria 条件
+    * @param pageable 分页参数
+    * @return Map<String,Object>
+    */
+    Map<String,Object> queryAll(${entity.name}Param criteria, Pageable pageable);
+
+    /**
+    * 查询所有数据不分页
+    * @param criteria 条件参数
+    * @return List<${entity.name}Dto>
+    */
+    List<${entity.name}Dto> queryAll(${entity.name}Param criteria);
+
+    /**
+     * 根据ID查询
+     * @param $fn.argumentsListWithWrapperType( $entity.keyAttributes ) ID
+     * @return ${entity.name}Dto
+     */
+    ${entity.name}Dto findById($fn.argumentsListWithWrapperType( $entity.keyAttributes ));
+
+    /**
+    * 创建
+    * @param resources /
+    * @return ${entity.name}Dto
+    */
+    ${entity.name}Dto create(${entity.name} resources);
+
+    /**
+    * 编辑
+    * @param resources /
+    */
+    void update(${entity.name} resources);
+
+    /**
+    * 多选删除
+    * @param ids /
+    */
+    void deleteAll($entityKeyType $fn.escapeXml("[]") ids);
+
+
+}

@@ -1,0 +1,8 @@
+package ${target.javaPackageFromFolder(${SRC})};
+import lombok.Data;
+import java.util.List;
+#include ( "/include/author.vm" )
+
+@Data
+public class ${entity.name}Param{
+}

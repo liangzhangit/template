@@ -1,30 +1,23 @@
 #parse ( "include/loader_stringutils.vm" )
 #parse ( "include/loader_inflector.vm" )
 package ${target.javaPackageFromFolder(${SRC})};
-
-#parse ( "main/java/domain/domain_entity_imports_java.vm" )
-
+#foreach( $import in $java.imports($entity.attributes) )
+import $import;
+#end
+import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
 #include ( "/include/author.vm" )
 #set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
 #set( $linkFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.IN_SELECTED_LINKS ) )
 #set( $tableName = $entity.databaseTable  )
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@ToString
-@Entity
-@Table(name = "${tableName}")
-public class ${entity.name} implements Serializable {
+@Getter
+@Setter
+public class ${entity.name}Dto implements Serializable {
 
-#parse ( "include/serial_version.vm" )
 #foreach( $field in $entity.keyAttributes )
 
-    @Access(AccessType.PROPERTY)
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "$field.databaseName", updatable = false, insertable = false)
     private $field.type $field.name#if($field.hasInitialValue())= ${field.initialValue}#end;
 #end
 #foreach( $link in $entity.selectedLinks )
@@ -33,8 +26,6 @@ public class ${entity.name} implements Serializable {
 #if ( $link.fieldType.contains("Enum_") )
     private $link.fieldType.replace("Enum_", "") $link.fieldName;
 #else
-    @JoinColumn(name = "$link.fieldName.toUpperCase()_ID", foreignKey = @ForeignKey(name = "FK_${tableName}_$link.fieldName.toUpperCase()_ID"))
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private ${link.fieldType} $link.fieldName;
 #end
 #end
@@ -43,24 +34,16 @@ public class ${entity.name} implements Serializable {
 #if ( $link.fieldType.contains("Enum_") )
     private $link.fieldType.replace("Enum_", "") $link.fieldName;
 #else
-    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE}, orphanRemoval = true)
-    @Fetch(FetchMode.SELECT)
-    @JsonBackReference
     private ${link.fieldType} $link.fieldName;
 #end
 #end
 #end
 #foreach( $field in $dataFields )
 
-    @Column(name = "$field.databaseName", nullable = false)
 #if ( $field.type.contains("Enum_") )
     private $field.type $field.name#if($field.hasInitialValue())= ${field.initialValue}#end;
 #else
     private $field.type.replace("Enum_", "") $field.name#if($field.hasInitialValue())= ${field.initialValue}#end;
 #end
 #end
-
-    public void copy(${entity.name} source){
-        BeanUtil.copyProperties(source,this, CopyOptions.create().setIgnoreNullValue(true));
-    }
 }

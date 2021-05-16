@@ -1,19 +1,11 @@
 package ${target.javaPackageFromFolder(${SRC})};
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-
-import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaRepository;
-import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphQuerydslPredicateExecutor;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.blinkfox.fenix.specification.FenixJpaSpecificationExecutor;
 import ${ENTITY_PKG}.${entity.name};
-import com.querydsl.core.types.Predicate;
-
+#set( $entityKeyType = ${entity.keyAttributes[0].formattedType(0)} )
 #include ( "/include/author.vm" )
 
-@Repository
-public interface ${entity.name}Repository extends EntityGraphJpaRepository<${entity.name}, Long>, EntityGraphQuerydslPredicateExecutor<${entity.name}> {
+public interface ${entity.name}Repository extends JpaRepository<${entity.name}, ${entityKeyType}>, FenixJpaSpecificationExecutor<${entity.name}>{
 
-    @Override
-    List<${entity.name}> findAll(final Predicate predicate);
 }

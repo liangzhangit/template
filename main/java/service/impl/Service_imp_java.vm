@@ -1,0 +1,81 @@
+package ${target.javaPackageFromFolder(${SRC})};
+
+import me.zhengjie.utils.ValidationUtil;
+import java.util.List;
+import java.util.Map;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.demo.base.PageUtil;
+import ${ROOT_PKG}.service.criteria.${entity.name}Param;
+import ${ROOT_PKG}.service.dto.${entity.name}Dto;
+import ${ROOT_PKG}.service.mapstruct.${entity.name}Mapper;
+
+import ${ROOT_PKG}.service.${entity.name}Service;
+import ${ROOT_PKG}.repository.${entity.name}Repository;
+import ${ENTITY_PKG}.${entity.name};
+
+#set( $changeClassName = $fn.uncapitalize(${entity.name}) )
+#set( $entityKeyType = ${entity.keyAttributes[0].formattedType(0)} )
+#include ( "/include/author.vm" )
+@Service
+@RequiredArgsConstructor
+public class ${entity.name}ServiceImpl implements ${entity.name}Service {
+
+    private final ${entity.name}Repository ${changeClassName}Repository;
+    private final ${entity.name}Mapper ${changeClassName}Mapper;
+
+    @Override
+    public Map<String,Object> queryAll(${entity.name}Param criteria, Pageable pageable){
+        Page<${entity.name}> page = ${changeClassName}Repository.findAllOfBean(criteria, pageable);
+        return PageUtil.toPage(page.map(${changeClassName}Mapper::toDto));
+    }
+
+    @Override
+    public List<${entity.name}Dto> queryAll(${entity.name}Param criteria){
+        return ${changeClassName}Mapper.toDto(${changeClassName}Repository.findAllOfBean(criteria));
+    }
+
+
+    @Override
+    public ${entity.name}Dto findById(${fn.argumentsListWithType($entity.keyAttributes)}) {
+#if( $entity.hasCompositePrimaryKey() )
+        ${entityKeyType} id = new ${entityKeyType}(${fn.argumentsList($entity.keyAttributes)});
+        ${entity.name} ${fn.uncapitalize($entity.name)} = ${fn.uncapitalize($entity.name)}Repository.findOneOfBean(id).orElseGet(${entity.name}::new);
+        ValidationUtil.isNull(${changeClassName}.getId$fn.escapeXml("()"),"${entity.name}","id",${fn.argumentsList($entity.keyAttributes)});
+
+#else
+        ${entity.name} ${fn.uncapitalize($entity.name)} = ${fn.uncapitalize($entity.name)}Repository.findOneOfBean(${fn.argumentsList($entity.keyAttributes)}).orElseGet(${entity.name}::new);
+        ValidationUtil.isNull(${changeClassName}.get$fn.capitalize(${fn.argumentsList($entity.keyAttributes)})$fn.escapeXml("()"),"${entity.name}","id",${fn.argumentsList($entity.keyAttributes)});
+
+#end
+        return ${changeClassName}Mapper.toDto(${changeClassName});
+    }
+
+
+    @Override
+    public ${entity.name}Dto create(${entity.name} ${fn.uncapitalize($entity.name)}) {
+        return ${fn.uncapitalize($entity.name)}Mapper.toDto(${fn.uncapitalize($entity.name)}Repository.save(${fn.uncapitalize($entity.name)}));
+    }
+
+
+
+    @Override
+    public void update(${entity.name} resources) {
+        ${entity.name} ${fn.uncapitalize($entity.name)}=${fn.uncapitalize($entity.name)}Repository.findById(resources.get${fn.capitalize($entity.keyAttributes[0].name)}()).orElseGet(${entity.name}::new);
+        ValidationUtil.isNull( ${fn.uncapitalize($entity.name)}.get${fn.capitalize($entity.keyAttributes[0].name)}(),"$entity.name","id",resources.get${fn.capitalize($entity.keyAttributes[0].name)}());
+        ${fn.uncapitalize($entity.name)}.copy(resources);
+        ${fn.uncapitalize($entity.name)}Repository.save(${fn.uncapitalize($entity.name)});
+    }
+
+    @Override
+    public void deleteAll(${entityKeyType}[] ids) {
+        for (${entityKeyType} ${entity.keyAttributes[0].name} : ids) {
+            ${changeClassName}Repository.deleteById(${entity.keyAttributes[0].name});
+        }
+    }
+
+}
